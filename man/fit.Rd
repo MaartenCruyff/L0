@@ -2,9 +2,9 @@
 % Please edit documentation in R/main.R
 \name{fit}
 \alias{fit}
-\title{Fit log linear models with step and L0 penalty}
+\title{Model selection with step and L0 penalty based on the BIC}
 \usage{
-fit(object, lambdarange = c(1e-05, 0.01), B = 50)
+fit(object, lambdarange = c(1e-04, 0.01), B = 50)
 }
 \arguments{
 \item{object}{object made with \code{\link{simdat}}.}
@@ -16,19 +16,35 @@ fit(object, lambdarange = c(1e-05, 0.01), B = 50)
 \value{
 A list with elements
 \itemize{
-\item \code{out} data frame with per method the number of non-zero parameter estimates \code{df},
-the number of effective degrees of freedom \code{def}, the BIC \code{bic}, the number of
-zero beta parameters \code{par0} in the starting model, \code{est0} the number of which have
-a zero estimate, \code{lambda} the value yielding the best BIC, and \code{nrlambda} its number in
-the lambda sequence.
+\item \code{out} data frame containing:
+\itemize{
+\item \code{method} model selection method
+\item \code{ic} information criterion (AIC vs BIC)
+\item \code{seed} seed for generating the data
+\item \code{var.lev} number of variables and levels of the variables.
+\item \code{brange} range of beta parameters
+\item \code{lrange} sum of \code{lambdarange}
+\item \code{n} sample size
+\item \code{bsat} number of parameters in saturated model
+\item \code{bstart} number of parameters in starting model
+\item \code{edf} effective degrees of freedom
+\item \code{logl} maximized log-likelihood
+\item \code{dev} deviance
+\item \code{icvalue} value of AIC/BIC
+\item \code{pval} p-value of the fitted model
+\item \code{par0} number of beta parameters with value 0
+\item \code{to_0} number of parameters in \code{par0} estimated as 0
+\item \code{budget} sum of absolute values of the estimated beta parameters
+\item \code{lambdanr} number of \code{lambda} in the sequence of the tested lambda values
+}
 \item \code{bhats} data frame with the sampled and estimated beta parameters.
 }
 }
 \description{
-Fit log linear models with step and L0 penalty
+Model selection with step and L0 penalty based on the BIC
 }
 \details{
-The starting model is a hierachical model excluding the k-factor interactions for which
+The starting model is a hierarchical model excluding the k-factor interactions for which
 one or more of the constituting (k - 1)-interactions have a non-zero sufficient statistic.
 
 The models with an L0 penalty include \code{L0a} and \code{Lob}. For the former the BIC is computed as
