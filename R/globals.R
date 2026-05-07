@@ -1,1 +1,1 @@
-utils::globalVariables(c("Freq", "pse", "bic", ".", "pars", "kk" ))
+utils::globalVariables(c("Freq", "pse", "bic", ".", "pars", "kk", "L0bic" ))

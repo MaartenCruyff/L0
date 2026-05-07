@@ -30,8 +30,8 @@ A list with elements
 \item \code{logl} maximized log-likelihood
 \item \code{dev} deviance
 \item \code{gof} AIC/BIC value, depending on the argument \code{ic}
-\item \code{par0} number of beta parameters with value 0
-\item \code{to_0} number of parameters in \code{par0} estimated as 0
+\item \code{is_0} number of beta parameters in start model with value 0
+\item \code{to_0} number of parameters in \code{is_0} estimated as 0
 \item \code{budget} sum of absolute parameter estimates, excluding the intercept
 \item \code{lambdanr} number of \code{lambda} in the sequence of the tested lambda values
 }

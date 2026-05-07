@@ -1,7 +1,7 @@
 Package: L0
 Type: Package
 Title: Penalized Multiple Systems Estimation
-Version: 1.0
+Version: 2.0
 Authors@R: person( "Maarten", "Cruyff", email = "m.cruyff@uu.nl", role = c("aut", "cre"))
 Description: Log linear models with L0 penalty.
 License: MIT + file LICENSE

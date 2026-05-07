@@ -111,8 +111,8 @@ simdat  <- function(nvars = 3, levels = 3, n = 1000, betas = -1:1, seed = sample
 #'    * `logl` maximized log-likelihood
 #'    * `dev` deviance
 #'    * `gof` AIC/BIC value, depending on the argument `ic`
-#'    * `par0` number of beta parameters with value 0
-#'    * `to_0` number of parameters in `par0` estimated as 0
+#'    * `is_0` number of beta parameters in start model with value 0
+#'    * `to_0` number of parameters in `is_0` estimated as 0
 #'    * `budget` sum of absolute parameter estimates, excluding the intercept
 #'    * `lambdanr` number of `lambda` in the sequence of the tested lambda values
 #' * `bhats` data frame with the sampled and estimated beta parameters.
@@ -134,7 +134,7 @@ simdat  <- function(nvars = 3, levels = 3, n = 1000, betas = -1:1, seed = sample
 #' *L0* regularization. *PLOS ONE*, **11** (2), <doi:10.1371/journal.pone.0148620>.
 #'
 #' @importFrom stats model.matrix formula dpois rmultinom coef terms extractAIC glm poisson predict step logLik
-#' @importFrom dplyr full_join join_by starts_with
+#' @importFrom dplyr full_join join_by starts_with relocate
 #' @importFrom tidyr replace_na drop_na
 #'
 #' @export
@@ -248,15 +248,16 @@ fit <- function(object, lambdarange = c(1e-4, 1e-2), B = 50)
     full_join(., data.frame(pars = names(stepbic), stepbic = round(stepbic, 7)),
               by = join_by(pars)) %>%
     drop_na(starts_with("L")) %>%
-    replace_na(list(stepaic = 0, stepbic = 0))
+    replace_na(list(stepaic = 0, stepbic = 0)) %>%
+    relocate(stepaic, .before = L0bic )
 
   dm  <- data.matrix(bhats[, 3:6])
   m   <- exp(D %*% dm)
   dev <- 2 * colSums(nobs * log(nobs / m), na.rm = T)
 
   to_0     <-  c(sum(bhats[, "beta"] == 0 & bhats[, "L0aic"] == 0),
-                 sum(bhats[, "beta"] == 0 & bhats[, "L0bic"] == 0),
                  sum(bhats[, "beta"] == 0 & bhats[, "stepaic"] == 0),
+                 sum(bhats[, "beta"] == 0 & bhats[, "L0bic"] == 0),
                  sum(bhats[, "beta"] == 0 & bhats[, "stepaic"] == 0))
 
   edf       <- c(edfpath[c(bestaic, bestbic)], length(beta) - c(maic$df.res, mbic$df.res))
@@ -274,13 +275,14 @@ fit <- function(object, lambdarange = c(1e-4, 1e-2), B = 50)
                     logl     = round(c(loglpath[c(bestaic, bestbic)], logLik(maic)[1], logLik(mbic)[1]), 1),
                     dev      = round(dev, 1),
                     gof      = round(c(gofpath[bestaic, 1], gofpath[bestbic, 2], maic$aic, extractAIC(mbic, k = log(n))[2]), 1),
-                    par0     = sum(bhats$beta == 0),
+                    is_0     = sum(bhats$beta == 0),
                     to_0     = to_0,
                     budget   = round(colSums(abs(bhats[, 3:6])), 1),
                     nrlambda = c(bestaic, bestbic, NA, NA),
                     row.names = NULL
   )
-  list(out = out, bhats = bhats)
+
+  list(out = out[c(1, 3, 2, 4), ], bhats = bhats)
 }
 
 #' Conduct a simulation
