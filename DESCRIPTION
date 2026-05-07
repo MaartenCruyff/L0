@@ -8,8 +8,11 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Imports:
     dplyr,
-    tidyr
+    tidyr,
+    doFuture,
+    future,
+    foreach
 Roxygen: list(markdown = TRUE)
 Depends: 
-    R (>= 4.5)
+    R (>= 4.6)
 Config/roxygen2/version: 8.0.0

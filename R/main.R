@@ -1,4 +1,4 @@
-#' Simulate a multiway contingency table
+#' Generate a multi-way contingency table
 #'
 #' @description Generates a contingency table with the frequencies generated
 #' by taking a multinomial random sample from a randomly
@@ -104,18 +104,16 @@ simdat  <- function(nvars = 3, levels = 3, n = 1000, betas = -1:1, seed = sample
 #'    * `seed` seed for generating the data
 #'    * `var.lev` number of variables and levels of the variables.
 #'    * `brange` range of beta parameters
-#'    * `lrange` sum of `lambdarange`
+#'    * `lrange` sum of the argument `lambdarange`
 #'    * `n` sample size
-#'    * `bsat` number of parameters in saturated model
-#'    * `bstart` number of parameters in starting model
+#'    * `nbeta` number of parameters in starting model
 #'    * `edf` effective degrees of freedom
 #'    * `logl` maximized log-likelihood
 #'    * `dev` deviance
-#'    * `icvalue` value of AIC/BIC
-#'    * `pval` p-value of the fitted model
+#'    * `gof` AIC/BIC value, depending on the argument `ic`
 #'    * `par0` number of beta parameters with value 0
 #'    * `to_0` number of parameters in `par0` estimated as 0
-#'    * `budget` sum of absolute values of the estimated beta parameters
+#'    * `budget` sum of absolute parameter estimates, excluding the intercept
 #'    * `lambdanr` number of `lambda` in the sequence of the tested lambda values
 #' * `bhats` data frame with the sampled and estimated beta parameters.
 #'
@@ -124,13 +122,13 @@ simdat  <- function(nvars = 3, levels = 3, n = 1000, betas = -1:1, seed = sample
 #' fit(simdat())
 #'
 #' @details
-#' The starting model is a hierarchical model excluding the k-factor interactions for which
-#' one or more of the constituting (k - 1)-interactions have a non-zero sufficient statistic.
+#' The starting model is a hierarchical model including the k-factor interaction parameters
+#' for which the sufficient statistic is zero, provided that all corresponding lower-order
+#' interaction parameters have positive sufficient statistics.
 #'
-#' The models with an L0 penalty include `L0a` and `Lob`. For the former the BIC is computed as
-#' \eqn{-2*\ell(\beta)+edf*\log(n)}, where `edf` are the effective degrees of freedom of
-#' a ridge penalty, while for the latter the BIC is computed as \eqn{-2*\ell(\beta)+df*\log(n)},
-#' where `df` are the number parameters with an absolute value greater than 1e-7.
+#' The effective degrees of freedom for the L0 method are calculated in the same way as
+#' for the L2 ridge penalty. For the step method these are simply the number of non-zero
+#' parameters in the model.
 #'
 #' @references Frommlet, F. and Nuel, G. (2016). An adaptive ridge regression procedure for
 #' *L0* regularization. *PLOS ONE*, **11** (2), <doi:10.1371/journal.pone.0148620>.
@@ -271,20 +269,57 @@ fit <- function(object, lambdarange = c(1e-4, 1e-2), B = 50)
                     brange   = max(beta[-1]) - min(beta[-1]),
                     lrange   = sum(lambdarange),
                     n        = n,
-                    bsat     = length(beta),
-                    bstart   = nrow(bhats),
+                    nbeta    = nrow(bhats),
                     edf      = round(edf, 1),
                     logl     = round(c(loglpath[c(bestaic, bestbic)], logLik(maic)[1], logLik(mbic)[1]), 1),
                     dev      = round(dev, 1),
-                    icvalue  = round(c(gofpath[bestaic, 1], gofpath[bestbic, 2], maic$aic, extractAIC(mbic, k = log(n))[2]), 1),
-                    pval     = round(pchisq(dev, nrow(bhats) - edf, lower.tail = F), 3),
+                    gof      = round(c(gofpath[bestaic, 1], gofpath[bestbic, 2], maic$aic, extractAIC(mbic, k = log(n))[2]), 1),
                     par0     = sum(bhats$beta == 0),
                     to_0     = to_0,
-                    budget   = round(colSums(abs(bhats[3:6])), 1),
-                    nrlambda = c(bestaic, bestbic, NA, NA)
+                    budget   = round(colSums(abs(bhats[, 3:6])), 1),
+                    nrlambda = c(bestaic, bestbic, NA, NA),
+                    row.names = NULL
   )
   list(out = out, bhats = bhats)
 }
 
+#' Conduct a simulation
+#'
+#' @description Run the function \code{\link{fit}} in parallel
+#'
+#' @param reps number of parallel executed repetitions
+#' @param cores number of cores. Default is maximum available minus 2.
+#' @param nvars,levels,n,betas see \code{\link{simdat}}.
+#' @param lambdarange,B see \code{\link{fit}}.
+#'
+#' @return The data frame `out` in the list returned by \code{\link{fit}} for
+#' the `reps` replication.
+#'
+#' @examples
+#'
+#' # cores is set to 2 to pass the R package check
+#'
+#' repfit(reps = 5, cores = 2, nvar = 4, levels = 2, n = 500, betas = -1:1)
+#'
+#' @importFrom doFuture %dofuture%
+#' @importFrom future plan multisession availableCores sequential
+#' @importFrom foreach foreach
+#' @export
 
+repfit <- function(reps = 1000, cores = NULL, nvars, levels, n, betas,
+                   lambdarange = c(1e-4, 1e-2), B = 50)
+{
+  plan(multisession, workers = ifelse(is.null(cores), availableCores() - 2, 2))
 
+  sim <- suppressWarnings(
+    foreach(kk = 1:reps,
+            .inorder = F, .combine= "rbind", .errorhandling = "remove") %dofuture% {
+              fit(simdat(nvars = nvars, levels = levels, n = n, betas = betas, seed = kk),
+                  lambdarange = lambdarange, B = B)$out
+            }
+  )
+
+  plan(sequential)
+
+  sim
+}

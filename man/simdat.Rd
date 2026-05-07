@@ -2,7 +2,7 @@
 % Please edit documentation in R/main.R
 \name{simdat}
 \alias{simdat}
-\title{Simulate a multiway contingency table}
+\title{Generate a multi-way contingency table}
 \usage{
 simdat(nvars = 3, levels = 3, n = 1000, betas = -1:1, seed = sample(1e+05, 1))
 }

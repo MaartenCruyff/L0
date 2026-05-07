@@ -23,18 +23,16 @@ A list with elements
 \item \code{seed} seed for generating the data
 \item \code{var.lev} number of variables and levels of the variables.
 \item \code{brange} range of beta parameters
-\item \code{lrange} sum of \code{lambdarange}
+\item \code{lrange} sum of the argument \code{lambdarange}
 \item \code{n} sample size
-\item \code{bsat} number of parameters in saturated model
-\item \code{bstart} number of parameters in starting model
+\item \code{nbeta} number of parameters in starting model
 \item \code{edf} effective degrees of freedom
 \item \code{logl} maximized log-likelihood
 \item \code{dev} deviance
-\item \code{icvalue} value of AIC/BIC
-\item \code{pval} p-value of the fitted model
+\item \code{gof} AIC/BIC value, depending on the argument \code{ic}
 \item \code{par0} number of beta parameters with value 0
 \item \code{to_0} number of parameters in \code{par0} estimated as 0
-\item \code{budget} sum of absolute values of the estimated beta parameters
+\item \code{budget} sum of absolute parameter estimates, excluding the intercept
 \item \code{lambdanr} number of \code{lambda} in the sequence of the tested lambda values
 }
 \item \code{bhats} data frame with the sampled and estimated beta parameters.
@@ -44,13 +42,13 @@ A list with elements
 Model selection with step and L0 penalty based on the BIC
 }
 \details{
-The starting model is a hierarchical model excluding the k-factor interactions for which
-one or more of the constituting (k - 1)-interactions have a non-zero sufficient statistic.
+The starting model is a hierarchical model including the k-factor interaction parameters
+for which the sufficient statistic is zero, provided that all corresponding lower-order
+interaction parameters have positive sufficient statistics.
 
-The models with an L0 penalty include \code{L0a} and \code{Lob}. For the former the BIC is computed as
-\eqn{-2*\ell(\beta)+edf*\log(n)}, where \code{edf} are the effective degrees of freedom of
-a ridge penalty, while for the latter the BIC is computed as \eqn{-2*\ell(\beta)+df*\log(n)},
-where \code{df} are the number parameters with an absolute value greater than 1e-7.
+The effective degrees of freedom for the L0 method are calculated in the same way as
+for the L2 ridge penalty. For the step method these are simply the number of non-zero
+parameters in the model.
 }
 \examples{
 fit(simdat())
