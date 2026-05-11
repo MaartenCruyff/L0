@@ -134,7 +134,7 @@ simdat  <- function(nvars = 3, levels = 3, n = 1000, betas = -1:1, seed = sample
 #' *L0* regularization. *PLOS ONE*, **11** (2), <doi:10.1371/journal.pone.0148620>.
 #'
 #' @importFrom stats model.matrix formula dpois rmultinom coef terms extractAIC glm poisson predict step logLik
-#' @importFrom dplyr full_join join_by starts_with relocate
+#' @importFrom dplyr full_join join_by starts_with
 #' @importFrom tidyr replace_na drop_na
 #'
 #' @export
@@ -248,16 +248,15 @@ fit <- function(object, lambdarange = c(1e-4, 1e-2), B = 50)
     full_join(., data.frame(pars = names(stepbic), stepbic = round(stepbic, 7)),
               by = join_by(pars)) %>%
     drop_na(starts_with("L")) %>%
-    replace_na(list(stepaic = 0, stepbic = 0)) %>%
-    relocate(stepaic, .before = L0bic )
+    replace_na(list(stepaic = 0, stepbic = 0))
 
   dm  <- data.matrix(bhats[, 3:6])
   m   <- exp(D %*% dm)
   dev <- 2 * colSums(nobs * log(nobs / m), na.rm = T)
 
   to_0     <-  c(sum(bhats[, "beta"] == 0 & bhats[, "L0aic"] == 0),
-                 sum(bhats[, "beta"] == 0 & bhats[, "stepaic"] == 0),
                  sum(bhats[, "beta"] == 0 & bhats[, "L0bic"] == 0),
+                 sum(bhats[, "beta"] == 0 & bhats[, "stepaic"] == 0),
                  sum(bhats[, "beta"] == 0 & bhats[, "stepaic"] == 0))
 
   edf       <- c(edfpath[c(bestaic, bestbic)], length(beta) - c(maic$df.res, mbic$df.res))
@@ -282,7 +281,7 @@ fit <- function(object, lambdarange = c(1e-4, 1e-2), B = 50)
                     row.names = NULL
   )
 
-  list(out = out[c(1, 3, 2, 4), ], bhats = bhats)
+  list(out = out[c(1, 3, 2, 4), ], bhats = bhats[, c(1:3, 5, 4, 6)])
 }
 
 #' Conduct a simulation
