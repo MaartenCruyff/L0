@@ -300,7 +300,7 @@ fit <- function(object, lambdarange = c(1e-4, 1e-2), B = 50)
 #'
 #' # cores is set to 2 to pass the R package check
 #'
-#' repfit(reps = 5, cores = 2, nvar = 4, levels = 2, n = 500, betas = -1:1)
+#' repfit(reps = 5, cores = 2, nvars = 4, levels = 2, n = 500, betas = -1:1)
 #'
 #' @importFrom doFuture %dofuture%
 #' @importFrom future plan multisession availableCores sequential

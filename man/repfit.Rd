@@ -35,6 +35,6 @@ Run the function \code{\link{fit}} in parallel
 
 # cores is set to 2 to pass the R package check
 
-repfit(reps = 5, cores = 2, nvar = 4, levels = 2, n = 500, betas = -1:1)
+repfit(reps = 5, cores = 2, nvars = 4, levels = 2, n = 500, betas = -1:1)
 
 }
